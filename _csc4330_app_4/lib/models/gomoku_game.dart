@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 /// Core game logic for Gomoku (five-in-a-row), independent of any UI.
 
 enum Stone { none, black, white }
@@ -51,6 +53,10 @@ class GomokuGame {
   List<Position> winningLine = const [];
   final List<Position> moveHistory = [];
 
+  final ValueNotifier<(int, int)> piecePlacedNotifier = ValueNotifier<(int, int)>((0, 0));
+  final ValueNotifier<(int, int)> pieceRemovedNotifier = ValueNotifier<(int, int)>((0, 0));
+  final ValueNotifier<bool> gameStartedNotifier = ValueNotifier<bool>(false);
+
   GomokuGame({this.boardSize = 15, this.winLength = 5}) {
     reset();
   }
@@ -67,6 +73,8 @@ class GomokuGame {
     isDraw = false;
     winningLine = const [];
     moveHistory.clear();
+
+    gameStartedNotifier.value = true;
   }
 
   bool _inBounds(int row, int col) =>
@@ -95,6 +103,12 @@ class GomokuGame {
       currentPlayer = player.opponent;
     }
 
+    // Update all listeners
+    piecePlacedNotifier.value = (row, col);
+    if (isGameOver){
+      gameStartedNotifier.value = false;
+    }
+
     return true;
   }
 
@@ -109,6 +123,11 @@ class GomokuGame {
     winner = null;
     isDraw = false;
     winningLine = const [];
+
+    // Update undo listeners
+    gameStartedNotifier.value = true;
+    pieceRemovedNotifier.value = (last.row, last.col);
+
     return true;
   }
 
