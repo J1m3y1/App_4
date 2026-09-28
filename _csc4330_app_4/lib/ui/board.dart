@@ -127,14 +127,14 @@ class _BoardWidgetState extends State<BoardWidget> {
 
     if (color == Stone.black && currentColor == Stone.black){
       pieceWidget = Image.asset(
-        "../../../assets/black-piece.png",
+        "assets/black-piece.png",
         opacity: AlwaysStoppedAnimation(.5),
         height: 64,
         width: 64
       );
     } else if (color == Stone.white && currentColor == Stone.white){
       pieceWidget = Image.asset(
-        "../../../assets/white-piece.png",
+        "assets/white-piece.png",
         opacity: AlwaysStoppedAnimation(.5),
         height: 64,
         width: 64
@@ -156,7 +156,7 @@ class _BoardWidgetState extends State<BoardWidget> {
     return HoverableAnimation(
       hoverOn: hoverOn,
       hoverOff: hoverOff,
-      duration: const Duration(milliseconds: 50)
+      duration: const Duration(milliseconds: 10)
     );
   }
 

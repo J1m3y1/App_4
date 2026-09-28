@@ -14,9 +14,9 @@ class Piece extends StatelessWidget {
   @override build(BuildContext context){
     String imageFp;
     if(color == PieceColor.black){
-      imageFp = "../../../assets/black-piece.png";
+      imageFp = "assets/black-piece.png";
     } else {
-      imageFp = "../../../assets/white-piece.png";
+      imageFp = "assets/white-piece.png";
     }
 
     return Image.asset(

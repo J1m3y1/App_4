@@ -1,4 +1,3 @@
-import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 class HoverableAnimation extends StatefulWidget {
@@ -73,13 +72,22 @@ class _HoverableAnimationState extends State<HoverableAnimation> {
         curve: widget.curve,
         transform: widget.transform,
         decoration: showHover ? widget.hoverOn.$2 : widget.hoverOff.$2,
-        child: AnimatedCrossFade(
-          duration: widget.duration,
-          firstCurve: widget.curve,
-          secondCurve: widget.curve,
-          firstChild: widget.hoverOn.$1,
-          secondChild: widget.hoverOff.$1,
-          crossFadeState: showHover ? CrossFadeState.showFirst : CrossFadeState.showSecond
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            AnimatedOpacity(
+              opacity: showHover ? 0 : 1,
+              duration: widget.duration,
+              curve: widget.curve,
+              child: RepaintBoundary(child: widget.hoverOff.$1)
+            ),
+            AnimatedOpacity(
+              opacity: showHover ? 1 : 0,
+              duration: widget.duration,
+              curve: widget.curve,
+              child: RepaintBoundary(child: widget.hoverOn.$1)
+            ),
+          ],
         )
       )
     ); 
