@@ -15,46 +15,72 @@ class HoverableAnimation extends StatefulWidget {
     super.key,
     this.curve = Curves.easeOut,
     this.transform,
-    this.duration=const Duration(milliseconds: 300),
+    this.duration=const Duration(milliseconds: 100),
     this.toggleAnimation,
   });
 
 
 
   @override
-  State<HoverableAnimation> createState() => _HoverableAnimationState(hoverOn, hoverOff, duration, curve, transform, toggleAnimation);
+  State<HoverableAnimation> createState() => _HoverableAnimationState();
 
 }
 
 class _HoverableAnimationState extends State<HoverableAnimation> {
   bool _isHovered = false;
-  bool _isOn = true;
-  (Widget, BoxDecoration) hoverOn;
-  (Widget, BoxDecoration) hoverOff;
-  Curve curve;
-  Matrix4? transform;
-  Duration duration;
-  ValueNotifier<bool>? toggleAnimation;
-
-  _HoverableAnimationState(this.hoverOn, this.hoverOff, this.duration, this.curve, this.transform, this.toggleAnimation);
+  late bool _isOn;
+  
 
   @override
   void initState() {
     super.initState();
-    toggleAnimation?.addListener(() => _isOn = toggleAnimation!.value);
+    _isOn = widget.toggleAnimation?.value ?? true;
+    widget.toggleAnimation?.addListener(_onToggleChanged);
+  }
+
+  void _onToggleChanged(){
+    if (mounted){
+      setState(() => _isOn = widget.toggleAnimation!.value);
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant HoverableAnimation oldWidget){
+    super.didUpdateWidget(oldWidget);
+    if(oldWidget.toggleAnimation != widget.toggleAnimation){
+      oldWidget.toggleAnimation?.removeListener(_onToggleChanged);
+      _isOn = widget.toggleAnimation?.value ?? true;
+      widget.toggleAnimation?.addListener(_onToggleChanged);
+    }
+  }
+
+  @override
+  void dispose(){
+    widget.toggleAnimation?.removeListener(_onToggleChanged);
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context){
+    final showHover = (_isHovered && _isOn);
+
     return MouseRegion(
+      hitTestBehavior: HitTestBehavior.opaque,
       onEnter: (context) => setState(() => _isHovered = true),
       onExit: (context) => setState(() => _isHovered = false),
       child: AnimatedContainer(
-        duration: duration,
-        curve: curve,
-        transform: transform,
-        decoration: (_isHovered && _isOn) ? hoverOn.$2 : hoverOff.$2,
-        child: (_isHovered && _isOn) ? hoverOn.$1 : hoverOff.$1
+        duration: widget.duration,
+        curve: widget.curve,
+        transform: widget.transform,
+        decoration: showHover ? widget.hoverOn.$2 : widget.hoverOff.$2,
+        child: AnimatedCrossFade(
+          duration: widget.duration,
+          firstCurve: widget.curve,
+          secondCurve: widget.curve,
+          firstChild: widget.hoverOn.$1,
+          secondChild: widget.hoverOff.$1,
+          crossFadeState: showHover ? CrossFadeState.showFirst : CrossFadeState.showSecond
+        )
       )
     ); 
   }

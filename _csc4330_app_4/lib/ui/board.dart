@@ -1,5 +1,8 @@
 import 'package:_csc4330_app_4/models/gomoku_game.dart';
+import 'package:_csc4330_app_4/models/player.dart';
+import 'package:_csc4330_app_4/ui/animations.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import './piece.dart';
 
 
@@ -9,7 +12,6 @@ Container _boardContainer (Widget? interior) {
   if (interior != null) children.add(interior);
   
   return Container(
-    padding: const EdgeInsets.all(16.0),
     decoration: BoxDecoration(
       color: Colors.amber,
       border: Border.all(
@@ -24,39 +26,63 @@ Container _boardContainer (Widget? interior) {
 }
 
 class BoardWidget extends StatefulWidget {
-  final GomokuGame game; // Game singleton
-
-  const BoardWidget(this.game, {super.key});
+  const BoardWidget({super.key});
   
 
   @override
-  State<BoardWidget> createState() => _BoardWidgetState(game);
+  State<BoardWidget> createState() => _BoardWidgetState();
 }
 
 class _BoardWidgetState extends State<BoardWidget> {
-  final GomokuGame game;
+  GomokuGame? _game;
+  Player? _player;
   late List<List<Piece?>> pieces;
 
-  _BoardWidgetState(this.game);
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    final GomokuGame newGame = context.watch();
+    final Player newPlayer = context.watch();
+
+    if(_game != newGame){
+      _detachListeners();
+      _game = newGame;
+      _initBoard();
+      _attachListeners();
+    }
+    if(_player != newPlayer){
+      _player = newPlayer;
+    }
+  }
+
+  void _attachListeners(){
+    _game?.piecePlacedNotifier.addListener(_onPiecePlaced);
+    _game?.pieceRemovedNotifier.addListener(_onPieceRemoved);
+    _game?.gameStartedNotifier.addListener(_onGameStartChange);
+  }
+
+  void _detachListeners(){
+    _game?.piecePlacedNotifier.removeListener(_onPiecePlaced);
+    _game?.pieceRemovedNotifier.removeListener(_onPieceRemoved);
+    _game?.gameStartedNotifier.removeListener(_onGameStartChange);
+  }
+
+  void _initBoard(){
+    pieces = [ for (List<Stone> row in _game!.board)
+        [ for (Stone stone in row) if (stone == Stone.black) Piece(PieceColor.black) else if (stone == Stone.white) Piece(PieceColor.white) else null]
+    ];
+  }
 
   @override
-  void initState() {
-    super.initState();
-
-    setState(() {
-      pieces = [ for (List<Stone> row in game.board)
-        [ for (Stone stone in row) if (stone == Stone.black) Piece(PieceColor.black) else if (stone == Stone.white) Piece(PieceColor.white) else null]
-      ];
-    }); 
-
-    game.piecePlacedNotifier.addListener(_onPiecePlaced);
-    game.pieceRemovedNotifier.addListener(_onPieceRemoved);
-    game.gameStartedNotifier.addListener(_onGameStartChange);
+  void dispose(){
+    _detachListeners();
+    super.dispose(); 
   }
-  
+
   void _onPiecePlaced() {
-    (int, int) coordinate = game.piecePlacedNotifier.value;
-    Stone stone = game.board[coordinate.$1][coordinate.$2];
+    (int, int) coordinate = _game!.piecePlacedNotifier.value;
+    Stone stone = _game!.board[coordinate.$1][coordinate.$2];
 
     setState(() {
       Piece? piece;
@@ -77,8 +103,8 @@ class _BoardWidgetState extends State<BoardWidget> {
   }
 
   void _onPieceRemoved(){
-    (int, int) coordinate = game.pieceRemovedNotifier.value;
-    Stone stone = game.board[coordinate.$1][coordinate.$2];
+    (int, int) coordinate = _game!.pieceRemovedNotifier.value;
+    Stone stone = _game!.board[coordinate.$1][coordinate.$2];
 
     setState(() {
       Piece? piece;
@@ -94,6 +120,45 @@ class _BoardWidgetState extends State<BoardWidget> {
     }); 
   }
 
+  HoverableAnimation _previewPiece() {
+    Stone color = _player!.color;
+    Stone currentColor = _game!.currentPlayer;
+    Widget pieceWidget;
+
+    if (color == Stone.black && currentColor == Stone.black){
+      pieceWidget = Image.asset(
+        "../../../assets/black-piece.png",
+        opacity: AlwaysStoppedAnimation(.5),
+        height: 64,
+        width: 64
+      );
+    } else if (color == Stone.white && currentColor == Stone.white){
+      pieceWidget = Image.asset(
+        "../../../assets/white-piece.png",
+        opacity: AlwaysStoppedAnimation(.5),
+        height: 64,
+        width: 64
+      );
+    } else {
+      pieceWidget = SizedBox.shrink();
+    }
+    
+    (Widget, BoxDecoration) hoverOn = (
+      pieceWidget,
+      BoxDecoration()
+    );
+
+    (Widget, BoxDecoration) hoverOff = (
+      const SizedBox(width: 64, height: 64),
+      BoxDecoration() 
+    );
+
+    return HoverableAnimation(
+      hoverOn: hoverOn,
+      hoverOff: hoverOff,
+      duration: const Duration(milliseconds: 50)
+    );
+  }
 
   @override 
   Widget build(BuildContext context){
@@ -103,7 +168,7 @@ class _BoardWidgetState extends State<BoardWidget> {
         for (List<Piece?> row in pieces) Column(
           mainAxisAlignment: .center,
           children: [
-            for (Piece? piece in row) _boardContainer(piece)
+            for (Piece? piece in row) if (piece != null) _boardContainer(piece) else _boardContainer(_previewPiece())
           ]
         )
       ]
