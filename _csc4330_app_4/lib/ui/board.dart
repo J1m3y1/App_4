@@ -1,10 +1,14 @@
+import 'dart:ui';
+
 import 'package:_csc4330_app_4/models/client.dart';
 import 'package:_csc4330_app_4/models/gomoku_game.dart';
 import 'package:_csc4330_app_4/models/player.dart';
 import 'package:_csc4330_app_4/ui/animations.dart';
+import 'package:_csc4330_app_4/ui/decoration.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import './piece.dart';
+
 
 
 Container _boardContainer (Widget? interior) {
@@ -14,10 +18,9 @@ Container _boardContainer (Widget? interior) {
   
   return Container(
     decoration: BoxDecoration(
-      color: Colors.amber,
       border: Border.all(
-        color: Colors.white,
-        width: 2.0
+        color: Colors.black,
+        width: 1.0
       )
     ),
     child: Stack( 
@@ -195,16 +198,29 @@ class _BoardWidgetState extends State<BoardWidget> {
 
   @override 
   Widget build(BuildContext context){
-    return Row(
-      mainAxisAlignment: .center,
-      children: [
-        for (int i=0; i<pieces.length; i++) Column(
-          mainAxisAlignment: .center,
+    FragmentShader? shader = context.read();
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Colors.black,
+          width: 1.0
+        )
+      ),
+      child: Container(
+        decoration: ShaderDecoration(shader: shader!, baseColor: Colors.brown, intensity:.08),
+        child: Row(
+        mainAxisAlignment: .center,
           children: [
-            for (int j=0; j<pieces[i].length; j++) if (pieces[i][j] != null) _boardContainer(pieces[i][j]) else _boardContainer(_previewPiece(i, j))
+            for (int i=0; i<pieces.length; i++) Column(
+              mainAxisAlignment: .center,
+              children: [
+                for (int j=0; j<pieces[i].length; j++) if (pieces[i][j] != null) _boardContainer(pieces[i][j]) else _boardContainer(_previewPiece(i, j))
+              ]
+            )
           ]
         )
-      ]
+      )
     ); 
   }
 }

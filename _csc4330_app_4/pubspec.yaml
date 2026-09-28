@@ -58,6 +58,9 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  shaders:
+    - assets/shaders/shading.frag
+
   assets:
     - assets/black-piece.png
     - assets/white-piece.png
