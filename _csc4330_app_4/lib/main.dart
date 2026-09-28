@@ -1,8 +1,5 @@
-import 'package:_csc4330_app_4/models/client.dart';
-import 'package:_csc4330_app_4/models/gomoku_game.dart';
-import 'package:_csc4330_app_4/models/player.dart';
 import 'package:_csc4330_app_4/models/shaders.dart';
-import 'package:_csc4330_app_4/ui/board.dart';
+import 'package:_csc4330_app_4/ui/level.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui' as ui;
@@ -46,22 +43,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  Provider<GomokuGame> gameProvider = Provider<GomokuGame>(
-    create: (context) 
-      {
-        GomokuGame game = GomokuGame();
-        return game;
-      } 
-  );
-
-  Provider<Player> playerProvider = Provider<Player>(
-    create: (context) => Player(color: Stone.black)
-  );
-
-  Provider<Client> clientProvider = Provider<Client>(
-    create: (context) => Client() 
-  );
-
   Future<Provider<Shaders>> _fetchShaderProvider() async {
     final shadingProgram = await ui.FragmentProgram.fromAsset("assets/shaders/shading.frag");
     final shading = shadingProgram.fragmentShader();
@@ -75,13 +56,6 @@ class _MyHomePageState extends State<MyHomePage> {
   
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-  
     return FutureBuilder(
       future: _fetchShaderProvider(),
       builder: (context, snapshot) {
@@ -92,29 +66,14 @@ class _MyHomePageState extends State<MyHomePage> {
         }
         else {
           return MultiProvider(
-            providers: [gameProvider, playerProvider, clientProvider, snapshot.data!], 
+            providers: [snapshot.data!], 
             child: Scaffold(
               appBar: AppBar(
-                // TRY THIS: Try changing the color here to a specific color (to
-                // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-                // change color while the other colors stay the same.
                 backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-                // Here we take the value from the MyHomePage object that was created by
-                // the App.build method, and use it to set our appbar title.
                 title: Text(widget.title),
               ),
-              body: Container(
-                decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary),
-                child: Center(
-                  child: FittedBox(
-                    fit: BoxFit.contain,
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: BoardWidget()
-                    )
-                  )
-                )
-              )
+              // TODO: Fill in level provider providers with providers obtained from instatiting client-server connections and new games
+              body: LevelProvider()
             )
           );
         }

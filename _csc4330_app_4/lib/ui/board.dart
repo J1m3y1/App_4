@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:_csc4330_app_4/models/client.dart';
 import 'package:_csc4330_app_4/models/gomoku_game.dart';
 import 'package:_csc4330_app_4/models/player.dart';
@@ -72,13 +70,11 @@ class _BoardWidgetState extends State<BoardWidget> {
   void _attachListeners(){
     _game?.piecePlacedNotifier.addListener(_onPiecePlaced);
     _game?.pieceRemovedNotifier.addListener(_onPieceRemoved);
-    _game?.gameStartedNotifier.addListener(_onGameStartChange);
   }
 
   void _detachListeners(){
     _game?.piecePlacedNotifier.removeListener(_onPiecePlaced);
     _game?.pieceRemovedNotifier.removeListener(_onPieceRemoved);
-    _game?.gameStartedNotifier.removeListener(_onGameStartChange);
   }
 
   void _initBoard(){
@@ -109,10 +105,6 @@ class _BoardWidgetState extends State<BoardWidget> {
 
       pieces[coordinate.$1][coordinate.$2] = piece;
     }); 
-  }
-
-  void _onGameStartChange(){
-
   }
 
   void _onPieceRemoved(){
