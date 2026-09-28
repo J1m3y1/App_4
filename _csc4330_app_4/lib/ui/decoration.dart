@@ -1,5 +1,7 @@
 import 'dart:ui' as ui;
-import 'package:flutter/material.dart'; 
+import 'package:_csc4330_app_4/models/shaders.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart'; 
 
 class ShaderDecoration extends Decoration {
   final ui.FragmentShader shader;
@@ -56,5 +58,67 @@ class _ShaderBoxPainter extends BoxPainter {
     } else {
       canvas.drawRect(rect, paint);
     }
+  }
+}
+
+class SceneLighting extends StatefulWidget {
+  final Widget child;
+  final Offset lightPosition;
+  final double lightRadius;
+  final Color lightColor;
+  final double ambientIntensity;
+
+  const SceneLighting({
+    super.key,
+    required this.child,
+    required this.lightPosition,
+    this.lightRadius = 350.0,
+    this.lightColor = Colors.white,
+    this.ambientIntensity = 0.35,
+  });
+
+  @override
+  State<SceneLighting> createState() => _SceneLightingState();
+}
+
+class _SceneLightingState extends State<SceneLighting> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Shaders shaders = context.read();
+    ui.FragmentShader shader = shaders.lighting;
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return ShaderMask(
+          blendMode: BlendMode.modulate, // Multiplies light map with the scene
+          shaderCallback: (Rect bounds) {
+            int index = 0;
+            
+            // Uniform 1: vec2 uLightPos (2 floats)
+            shader.setFloat(index++, widget.lightPosition.dx);
+            shader.setFloat(index++, widget.lightPosition.dy);
+
+            // Uniform 2: vec3 uLightColor (3 floats)
+            shader.setFloat(index++, widget.lightColor.r);
+            shader.setFloat(index++, widget.lightColor.g);
+            shader.setFloat(index++, widget.lightColor.b);
+
+            // Uniform 3: float uLightRadius (1 float)
+            shader.setFloat(index++, widget.lightRadius);
+
+            // Uniform 4: float uAmbientIntensity (1 float)
+            shader.setFloat(index++, widget.ambientIntensity);
+
+            return shader;
+          },
+          child: widget.child,
+        );
+      },
+    );
   }
 }

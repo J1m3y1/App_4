@@ -60,6 +60,7 @@ flutter:
 
   shaders:
     - assets/shaders/shading.frag
+    - assets/shaders/lighting.frag
 
   assets:
     - assets/black-piece.png

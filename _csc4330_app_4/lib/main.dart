@@ -1,6 +1,7 @@
 import 'package:_csc4330_app_4/models/client.dart';
 import 'package:_csc4330_app_4/models/gomoku_game.dart';
 import 'package:_csc4330_app_4/models/player.dart';
+import 'package:_csc4330_app_4/models/shaders.dart';
 import 'package:_csc4330_app_4/ui/board.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -61,9 +62,15 @@ class _MyHomePageState extends State<MyHomePage> {
     create: (context) => Client() 
   );
 
-  Future<ui.FragmentShader> _fetchShaderProvider() async {
-    final program = await ui.FragmentProgram.fromAsset("assets/shaders/shading.frag");
-    return program.fragmentShader();
+  Future<Provider<Shaders>> _fetchShaderProvider() async {
+    final shadingProgram = await ui.FragmentProgram.fromAsset("assets/shaders/shading.frag");
+    final shading = shadingProgram.fragmentShader();
+
+    final lightingProgram = await ui.FragmentProgram.fromAsset("assets/shaders/lighting.frag");
+    final lighting = lightingProgram.fragmentShader();
+
+    Shaders shaders = Shaders(shading: shading, lighting: lighting);
+    return Provider(create: (context) => shaders);
   }
   
   @override
@@ -85,7 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
         }
         else {
           return MultiProvider(
-            providers: [gameProvider, playerProvider, clientProvider, Provider(create: (context) => snapshot.data)], 
+            providers: [gameProvider, playerProvider, clientProvider, snapshot.data!], 
             child: Scaffold(
               appBar: AppBar(
                 // TRY THIS: Try changing the color here to a specific color (to

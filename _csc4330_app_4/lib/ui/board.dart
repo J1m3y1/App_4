@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:_csc4330_app_4/models/client.dart';
 import 'package:_csc4330_app_4/models/gomoku_game.dart';
 import 'package:_csc4330_app_4/models/player.dart';
+import 'package:_csc4330_app_4/models/shaders.dart';
 import 'package:_csc4330_app_4/ui/animations.dart';
 import 'package:_csc4330_app_4/ui/decoration.dart';
 import 'package:flutter/material.dart';
@@ -198,27 +199,34 @@ class _BoardWidgetState extends State<BoardWidget> {
 
   @override 
   Widget build(BuildContext context){
-    FragmentShader? shader = context.read();
+    Shaders shaders = context.read();
+    
 
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(
-          color: Colors.black,
-          width: 1.0
-        )
-      ),
+    return SceneLighting(
+      lightPosition: Offset(64.0*_game!.boardSize, 0.0),
+      lightRadius: 1000,
+      lightColor: const Color.fromARGB(255, 217, 168, 61),
+      ambientIntensity: 0.6,
       child: Container(
-        decoration: ShaderDecoration(shader: shader!, baseColor: Colors.brown, intensity:.08),
-        child: Row(
-        mainAxisAlignment: .center,
-          children: [
-            for (int i=0; i<pieces.length; i++) Column(
-              mainAxisAlignment: .center,
-              children: [
-                for (int j=0; j<pieces[i].length; j++) if (pieces[i][j] != null) _boardContainer(pieces[i][j]) else _boardContainer(_previewPiece(i, j))
-              ]
-            )
-          ]
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: Colors.black,
+            width: 1.0
+          )
+        ),
+        child: Container(
+          decoration: ShaderDecoration(shader: shaders.shading, baseColor: Colors.brown, intensity:.08),
+          child: Row(
+          mainAxisAlignment: .center,
+            children: [
+              for (int i=0; i<pieces.length; i++) Column(
+                mainAxisAlignment: .center,
+                children: [
+                  for (int j=0; j<pieces[i].length; j++) if (pieces[i][j] != null) _boardContainer(pieces[i][j]) else _boardContainer(_previewPiece(i, j))
+                ]
+              )
+            ]
+          )
         )
       )
     ); 
