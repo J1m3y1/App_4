@@ -1,3 +1,4 @@
+import 'package:_csc4330_app_4/models/client.dart';
 import 'package:_csc4330_app_4/models/gomoku_game.dart';
 import 'package:_csc4330_app_4/models/player.dart';
 import 'package:_csc4330_app_4/ui/board.dart';
@@ -19,7 +20,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: 'Gomoku'),
     );
   }
 }
@@ -57,6 +58,10 @@ class _MyHomePageState extends State<MyHomePage> {
     create: (context) => Player(color: Stone.black)
   );
 
+  Provider<Client> clientProvider = Provider<Client>(
+    create: (context) => Client() 
+  );
+
   @override
   Widget build(BuildContext context) {
     // This method is rerun every time setState is called, for instance as done
@@ -67,7 +72,7 @@ class _MyHomePageState extends State<MyHomePage> {
     // than having to individually change instances of widgets.
   
     return MultiProvider(
-      providers: [gameProvider, playerProvider], 
+      providers: [gameProvider, playerProvider, clientProvider], 
       child: Scaffold(
         appBar: AppBar(
           // TRY THIS: Try changing the color here to a specific color (to
@@ -78,12 +83,15 @@ class _MyHomePageState extends State<MyHomePage> {
           // the App.build method, and use it to set our appbar title.
           title: Text(widget.title),
         ),
-        body: Center(
-          child: FittedBox(
-            fit: BoxFit.contain,
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: BoardWidget()
+        body: Container(
+          decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary),
+          child: Center(
+            child: FittedBox(
+              fit: BoxFit.contain,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: BoardWidget()
+              )
             )
           )
         )
