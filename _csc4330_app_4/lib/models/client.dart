@@ -1,5 +1,5 @@
 class Client {
-  bool is_online;
-  
-  Client({this.is_online=false});
+  bool isOnline;
+
+  Client({this.isOnline=false});
 }

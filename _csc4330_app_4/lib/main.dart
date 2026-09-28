@@ -48,8 +48,6 @@ class _MyHomePageState extends State<MyHomePage> {
     create: (context) 
       {
         GomokuGame game = GomokuGame();
-        game.placeStone(1, 1);
-        game.placeStone(2, 2); 
         return game;
       } 
   );

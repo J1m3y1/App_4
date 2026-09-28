@@ -1,3 +1,4 @@
+import 'package:_csc4330_app_4/models/client.dart';
 import 'package:_csc4330_app_4/models/gomoku_game.dart';
 import 'package:_csc4330_app_4/models/player.dart';
 import 'package:_csc4330_app_4/ui/animations.dart';
@@ -36,6 +37,8 @@ class BoardWidget extends StatefulWidget {
 class _BoardWidgetState extends State<BoardWidget> {
   GomokuGame? _game;
   Player? _player;
+  Client? _client;
+
   late List<List<Piece?>> pieces;
 
   @override
@@ -44,6 +47,7 @@ class _BoardWidgetState extends State<BoardWidget> {
 
     final GomokuGame newGame = context.watch();
     final Player newPlayer = context.watch();
+    final Client newClient = context.watch();
 
     if(_game != newGame){
       _detachListeners();
@@ -51,8 +55,13 @@ class _BoardWidgetState extends State<BoardWidget> {
       _initBoard();
       _attachListeners();
     }
+
     if(_player != newPlayer){
       _player = newPlayer;
+    }
+
+    if(_client != newClient){
+      _client = newClient;
     }
   }
 
@@ -120,25 +129,47 @@ class _BoardWidgetState extends State<BoardWidget> {
     }); 
   }
 
-  HoverableAnimation _previewPiece() {
+  bool _moveIsValid(){
+    Stone color = _player!.color;
+    Stone currentColor = _game!.currentPlayer;
+    bool gameIsOver =_game!.isGameOver;
+    bool online = _client!.isOnline;
+
+    return (!gameIsOver && ((color == currentColor) || !online));
+  } 
+
+  void Function() _onClick(int row, int column) {
+    return (() {
+      if (_moveIsValid()) {
+        _game!.placeStone(row, column);
+      }
+    });
+  }
+
+  HoverableAnimation _previewPiece(int row, int column) {
     Stone color = _player!.color;
     Stone currentColor = _game!.currentPlayer;
     Widget pieceWidget;
+    ValueNotifier<bool> toggleAnimation = ValueNotifier(_moveIsValid() && color != Stone.none);
 
-    if (color == Stone.black && currentColor == Stone.black){
-      pieceWidget = Image.asset(
-        "assets/black-piece.png",
-        opacity: AlwaysStoppedAnimation(.5),
-        height: 64,
-        width: 64
-      );
-    } else if (color == Stone.white && currentColor == Stone.white){
-      pieceWidget = Image.asset(
-        "assets/white-piece.png",
-        opacity: AlwaysStoppedAnimation(.5),
-        height: 64,
-        width: 64
-      );
+    if(_moveIsValid()){
+      if (currentColor == Stone.black){
+        pieceWidget = Image.asset(
+          "assets/black-piece.png",
+          opacity: AlwaysStoppedAnimation(.5),
+          height: 64,
+          width: 64
+        );
+      } else if (currentColor == Stone.white){
+        pieceWidget = Image.asset(
+          "assets/white-piece.png",
+          opacity: AlwaysStoppedAnimation(.5),
+          height: 64,
+          width: 64
+        );
+      } else {
+        pieceWidget = SizedBox.shrink();
+      }
     } else {
       pieceWidget = SizedBox.shrink();
     }
@@ -156,7 +187,9 @@ class _BoardWidgetState extends State<BoardWidget> {
     return HoverableAnimation(
       hoverOn: hoverOn,
       hoverOff: hoverOff,
-      duration: const Duration(milliseconds: 10)
+      duration: const Duration(milliseconds: 10),
+      onClickCallback: _onClick(row, column),
+      toggleAnimation: toggleAnimation
     );
   }
 
@@ -165,10 +198,10 @@ class _BoardWidgetState extends State<BoardWidget> {
     return Row(
       mainAxisAlignment: .center,
       children: [
-        for (List<Piece?> row in pieces) Column(
+        for (int i=0; i<pieces.length; i++) Column(
           mainAxisAlignment: .center,
           children: [
-            for (Piece? piece in row) if (piece != null) _boardContainer(piece) else _boardContainer(_previewPiece())
+            for (int j=0; j<pieces[i].length; j++) if (pieces[i][j] != null) _boardContainer(pieces[i][j]) else _boardContainer(_previewPiece(i, j))
           ]
         )
       ]

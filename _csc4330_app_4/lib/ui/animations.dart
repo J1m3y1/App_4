@@ -1,5 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+void doNothing() {}
+
 class HoverableAnimation extends StatefulWidget {
   final (Widget, BoxDecoration) hoverOn;
   final (Widget, BoxDecoration) hoverOff; 
@@ -7,6 +9,7 @@ class HoverableAnimation extends StatefulWidget {
   final Curve curve; 
   final Matrix4? transform;
   final ValueNotifier<bool>? toggleAnimation;
+  final void Function() onClickCallback; 
 
   const HoverableAnimation({
     required this.hoverOn,
@@ -16,6 +19,7 @@ class HoverableAnimation extends StatefulWidget {
     this.transform,
     this.duration=const Duration(milliseconds: 100),
     this.toggleAnimation,
+    this.onClickCallback = doNothing
   });
 
 
@@ -64,30 +68,34 @@ class _HoverableAnimationState extends State<HoverableAnimation> {
     final showHover = (_isHovered && _isOn);
 
     return MouseRegion(
+      cursor: _isOn ? SystemMouseCursors.click : MouseCursor.defer,
       hitTestBehavior: HitTestBehavior.opaque,
       onEnter: (context) => setState(() => _isHovered = true),
       onExit: (context) => setState(() => _isHovered = false),
-      child: AnimatedContainer(
-        duration: widget.duration,
-        curve: widget.curve,
-        transform: widget.transform,
-        decoration: showHover ? widget.hoverOn.$2 : widget.hoverOff.$2,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            AnimatedOpacity(
-              opacity: showHover ? 0 : 1,
-              duration: widget.duration,
-              curve: widget.curve,
-              child: RepaintBoundary(child: widget.hoverOff.$1)
-            ),
-            AnimatedOpacity(
-              opacity: showHover ? 1 : 0,
-              duration: widget.duration,
-              curve: widget.curve,
-              child: RepaintBoundary(child: widget.hoverOn.$1)
-            ),
-          ],
+      child: GestureDetector(
+        onTap: widget.onClickCallback,
+        child: AnimatedContainer(
+          duration: widget.duration,
+          curve: widget.curve,
+          transform: widget.transform,
+          decoration: showHover ? widget.hoverOn.$2 : widget.hoverOff.$2,
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              AnimatedOpacity(
+                opacity: showHover ? 0 : 1,
+                duration: widget.duration,
+                curve: widget.curve,
+                child: RepaintBoundary(child: widget.hoverOff.$1)
+              ),
+              AnimatedOpacity(
+                opacity: showHover ? 1 : 0,
+                duration: widget.duration,
+                curve: widget.curve,
+                child: RepaintBoundary(child: widget.hoverOn.$1)
+              ),
+            ],
+          )
         )
       )
     ); 
