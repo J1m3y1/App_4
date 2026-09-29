@@ -83,7 +83,7 @@ class _MainLevelState extends State<MainLevel> {
 
   @override 
   Widget build(BuildContext context){
-    List<Widget> stackChildren = [
+    List<Widget> gameStackChildren = [
       BoardWidget(),
       // Game over screen
       Positioned.fill(
@@ -100,18 +100,62 @@ class _MainLevelState extends State<MainLevel> {
       )
     ];
 
-    return Container(
-        decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary),
-        child: Center(
+    List<Widget> backgroundStackChildren = [
+      Positioned(
+        left: 0,
+        top: 0,
+        bottom: 0,
+        child: IgnorePointer(
+          child: Opacity(
+            opacity: 0.08,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 40),
+              child: Image.asset(
+                "assets/player1.png",
+                fit: BoxFit.fitHeight,
+                alignment: Alignment.centerRight,
+              ),
+            )
+          ),
+        ),
+      ),
+
+      Positioned(
+        right: 0,
+        top: 0,
+        bottom: 0,
+        child: IgnorePointer(
+          child: Opacity(
+            opacity: 0.08,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 40),
+              child: Image.asset(
+                "assets/player2.png",
+                fit: BoxFit.fitHeight,
+                alignment: Alignment.centerRight,
+            ),
+            )
+          ),
+        ),
+      ),
+
+      Center(
           child: FittedBox(
             fit: BoxFit.contain,
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Stack(
-                children: stackChildren
+                children: gameStackChildren
               )
             )
           )
+        )
+    ];
+
+    return Container(
+        decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary),
+        child: Stack(
+          children: backgroundStackChildren
         )
     );
   }

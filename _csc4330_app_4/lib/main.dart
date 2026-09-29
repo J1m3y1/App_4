@@ -67,14 +67,8 @@ class _MyHomePageState extends State<MyHomePage> {
         else {
           return MultiProvider(
             providers: [snapshot.data!], 
-            child: Scaffold(
-              appBar: AppBar(
-                backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-                title: Text(widget.title),
-              ),
               // TODO: Fill in level provider providers with providers obtained from instatiting client-server connections and new games
-              body: LevelProvider()
-            )
+            child: LevelProvider()
           );
         }
       }
