@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:_csc4330_app_4/models/client.dart';
 import 'package:_csc4330_app_4/models/gomoku_game.dart';
 import 'package:_csc4330_app_4/models/player.dart';
@@ -196,7 +198,7 @@ class _BoardWidgetState extends State<BoardWidget> {
 
     return SceneLighting(
       lightPosition: Offset(64.0*_game!.boardSize, 0.0),
-      lightRadius: 1000,
+      lightRadius: 64.0*_game!.boardSize * sqrt(2),
       lightColor: const Color.fromARGB(255, 217, 168, 61),
       ambientIntensity: 0.6,
       child: Container(
