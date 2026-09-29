@@ -25,6 +25,7 @@ Container _boardContainer (Widget? interior) {
       )
     ),
     child: Stack( 
+      clipBehavior: Clip.none,
       children: children
     )
   );
@@ -42,7 +43,9 @@ class _BoardWidgetState extends State<BoardWidget> {
   GomokuGame? _game;
   Player? _player;
   Client? _client;
-
+  
+  (int, int)? _pieceIsPlaying;
+  late bool _gameIsOver; 
   late List<List<Piece?>> pieces;
 
   @override
@@ -57,6 +60,7 @@ class _BoardWidgetState extends State<BoardWidget> {
       _detachListeners();
       _game = newGame;
       _initBoard();
+      _gameIsOver = !_game!.gameStartedNotifier.value;
       _attachListeners();
     }
 
@@ -72,11 +76,13 @@ class _BoardWidgetState extends State<BoardWidget> {
   void _attachListeners(){
     _game?.piecePlacedNotifier.addListener(_onPiecePlaced);
     _game?.pieceRemovedNotifier.addListener(_onPieceRemoved);
+    _game?.gameStartedNotifier.addListener(_onGameStartedChange);
   }
 
   void _detachListeners(){
     _game?.piecePlacedNotifier.removeListener(_onPiecePlaced);
     _game?.pieceRemovedNotifier.removeListener(_onPieceRemoved);
+    _game?.gameStartedNotifier.removeListener(_onGameStartedChange);
   }
 
   void _initBoard(){
@@ -127,18 +133,22 @@ class _BoardWidgetState extends State<BoardWidget> {
     }); 
   }
 
+  void _onGameStartedChange(){
+    setState(() => _gameIsOver = !_game!.gameStartedNotifier.value);
+  }
+
   bool _moveIsValid(){
     Stone color = _player!.color;
     Stone currentColor = _game!.currentPlayer;
-    bool gameIsOver =_game!.isGameOver;
     bool online = _client!.isOnline;
 
-    return (!gameIsOver && ((color == currentColor) || !online));
+    return (_pieceIsPlaying == null) && (!_gameIsOver && ((color == currentColor) || !online));
   } 
 
   void Function() _onClick(int row, int column) {
     return (() {
       if (_moveIsValid()) {
+        setState(() => _pieceIsPlaying = (row, column));
         _game!.placeStone(row, column);
       }
     });
@@ -191,38 +201,68 @@ class _BoardWidgetState extends State<BoardWidget> {
     );
   }
 
+  PlacingPieceAnimation _placingPiece(int row, int column){
+    return PlacingPieceAnimation(
+      pieceWidget: pieces[row][column]!,
+      onLanded: () => setState(() => _pieceIsPlaying = null)
+    );
+  }
+
   @override 
   Widget build(BuildContext context){
     Shaders shaders = context.read();
-    
 
     return SceneLighting(
       lightPosition: Offset(64.0*_game!.boardSize, 0.0),
       lightRadius: 64.0*_game!.boardSize * sqrt(2),
       lightColor: const Color.fromARGB(255, 217, 168, 61),
       ambientIntensity: 0.6,
-      child: Container(
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: Colors.black,
-            width: 1.0
-          )
-        ),
-        child: Container(
-          decoration: ShaderDecoration(shader: shaders.shading, baseColor: Colors.brown, intensity:.08),
-          child: Row(
-          mainAxisAlignment: .center,
-            children: [
-              for (int i=0; i<pieces.length; i++) Column(
+      child: Overlay(
+        alwaysSizeToContent: true,
+        initialEntries: [
+          OverlayEntry(
+            canSizeOverlay: true,
+            builder: (context) => Container(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: Colors.black,
+                  width: 1.0
+                )
+              ),
+              child: Container(
+                decoration: ShaderDecoration(shader: shaders.shading, baseColor: Colors.brown, intensity:.08),
+                child: Row(
                 mainAxisAlignment: .center,
-                children: [
-                  for (int j=0; j<pieces[i].length; j++) if (pieces[i][j] != null) _boardContainer(pieces[i][j]) else _boardContainer(_previewPiece(i, j))
-                ]
+                  children: [
+                    for (int i=0; i<pieces.length; i++) Column(
+                      mainAxisAlignment: .center,
+                      children: [
+                        for (int j=0; j<pieces[i].length; j++) (() {
+                          if ((_pieceIsPlaying == (i, j)) && pieces[i][j] != null){
+                            return Stack(
+                              clipBehavior: Clip.none ,
+                              children: [
+                                _boardContainer(null),
+                                _placingPiece(i, j)
+                              ]
+                            );
+                          }
+                          else if (pieces[i][j] != null){
+                            return _boardContainer(pieces[i][j]);
+                          }
+                          else {
+                            return _boardContainer(_previewPiece(i, j));
+                          }
+                        })()
+                      ]
+                    )
+                  ]
+                )
               )
-            ]
+            )
           )
-        )
+        ]
       )
-    ); 
+    );  
   }
 }

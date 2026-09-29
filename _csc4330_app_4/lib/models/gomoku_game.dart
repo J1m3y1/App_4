@@ -74,7 +74,7 @@ class GomokuGame {
     winningLine = const [];
     moveHistory.clear();
 
-    gameStartedNotifier.value = true;
+    gameStartedNotifier.value = !isGameOver;
   }
 
   bool _inBounds(int row, int col) =>
@@ -105,9 +105,7 @@ class GomokuGame {
 
     // Update all listeners
     piecePlacedNotifier.value = (row, col);
-    if (isGameOver){
-      gameStartedNotifier.value = false;
-    }
+    gameStartedNotifier.value = !isGameOver;
 
     return true;
   }
@@ -125,7 +123,7 @@ class GomokuGame {
     winningLine = const [];
 
     // Update undo listeners
-    gameStartedNotifier.value = true;
+    gameStartedNotifier.value = !isGameOver;
     pieceRemovedNotifier.value = (last.row, last.col);
 
     return true;

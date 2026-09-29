@@ -67,7 +67,6 @@ class _MainLevelState extends State<MainLevel> {
   }
 
   void _onGameStartedChange() {
-    print(_game!.gameStartedNotifier.value);
     setState(() => _gameOver = !_game!.gameStartedNotifier.value);
   }
 
@@ -85,6 +84,7 @@ class _MainLevelState extends State<MainLevel> {
   Widget build(BuildContext context){
     List<Widget> gameStackChildren = [
       BoardWidget(),
+    
       // Game over screen
       Positioned.fill(
         child: FractionallySizedBox(
