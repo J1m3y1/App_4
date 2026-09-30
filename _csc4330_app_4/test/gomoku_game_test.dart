@@ -252,5 +252,38 @@ void main() {
       expect(() => game.piecePlacedNotifier.addListener(() {}),
           throwsFlutterError);
     });
+    test('a line of six (overline) does not win', () {
+      final game = GomokuGame(boardSize: 9);
+      final moves = [
+        (0, 0), (5, 0), // B, W
+        (0, 1), (5, 1),
+        (0, 2), (5, 2),
+        (0, 4), (6, 0),
+        (0, 5), (6, 1),
+      ];
+      for (final (r, c) in moves) {
+        game.placeStone(r, c);
+      }
+
+      expect(game.placeStone(0, 3), isTrue); // black fills the gap: six in a row
+      expect(game.isGameOver, isFalse);
+      expect(game.winner, isNull);
+      expect(game.currentPlayer, Stone.white);
+    });
+
+    test('exactly five in another direction still wins despite an overline', () {
+      final game = GomokuGame(boardSize: 9);
+      final black = [(0, 0), (0, 1), (0, 2), (0, 4), (0, 5), (1, 3), (2, 3), (3, 3), (4, 3)];
+      final white = [(8, 0), (8, 1), (8, 2), (8, 3), (7, 0), (7, 1), (7, 2), (7, 3), (6, 0)];
+      for (var i = 0; i < black.length; i++) {
+        game.placeStone(black[i].$1, black[i].$2);
+        game.placeStone(white[i].$1, white[i].$2);
+      }
+
+      game.placeStone(0, 3); // six across, five down
+      expect(game.winner, Stone.black);
+      expect(game.winningLine, [for (var r = 0; r < 5; r++) Position(r, 3)]);
+    });
+
   });
 }

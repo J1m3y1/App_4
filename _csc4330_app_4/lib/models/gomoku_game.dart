@@ -204,7 +204,8 @@ class GomokuGame {
   }
 
   /// Checks whether placing [player]'s stone at [row]/[col] completes a line
-  /// of at least [winLength] stones, returning the full line if so.
+  /// of exactly [winLength] stones, returning the line if so. Longer lines
+  /// (overlines) do not win, per standard Gomoku rules.
   List<Position>? _winningLineThrough(int row, int col, Stone player) {
     for (final dir in _directions) {
       final line = [Position(row, col)];
@@ -225,7 +226,7 @@ class GomokuGame {
         c -= dir.col;
       }
 
-      if (line.length >= winLength) return line;
+      if (line.length == winLength) return line;
     }
     return null;
   }
