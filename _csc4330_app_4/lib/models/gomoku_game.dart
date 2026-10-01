@@ -75,19 +75,21 @@ class GomokuGame {
 
   /// Fires with the coordinate of every stone placed. Read the stone's color
   /// from [board] (or [stoneAt]).
-  final EventNotifier<(int, int)> piecePlacedNotifier = EventNotifier<(int, int)>((0, 0));
+  final EventNotifier<(int, int)> piecePlacedNotifier =
+      EventNotifier<(int, int)>((0, 0));
 
   /// Fires with the coordinate of every stone removed, by undo or by [reset].
   /// The cell is already cleared in [board] when listeners run.
-  final EventNotifier<(int, int)> pieceRemovedNotifier = EventNotifier<(int, int)>((0, 0));
+  final EventNotifier<(int, int)> pieceRemovedNotifier =
+      EventNotifier<(int, int)>((0, 0));
 
   /// Fires true when a game starts (or resumes after an undo past its end) and
   /// false when it ends by win, draw, or concession.
   final EventNotifier<bool> gameStartedNotifier = EventNotifier<bool>(false);
 
   GomokuGame({this.boardSize = 15, this.winLength = 5})
-      : assert(boardSize > 0),
-        assert(winLength > 0) {
+    : assert(boardSize > 0),
+      assert(winLength > 0) {
     reset();
   }
 
@@ -102,10 +104,7 @@ class GomokuGame {
       pieceRemovedNotifier.value = (pos.row, pos.col);
     }
 
-    board = List.generate(
-      boardSize,
-      (_) => List.filled(boardSize, Stone.none),
-    );
+    board = List.generate(boardSize, (_) => List.filled(boardSize, Stone.none));
     currentPlayer = Stone.black;
     winner = null;
     isDraw = false;
@@ -166,11 +165,57 @@ class GomokuGame {
 
     // Update all listeners
     piecePlacedNotifier.value = (row, col);
-    if (isGameOver){
+    if (isGameOver) {
       gameStartedNotifier.value = false;
     }
 
     return true;
+  }
+
+  void applyRemoteState({
+    required List<List<Stone>> board,
+    required Stone currentPlayer,
+    required Stone? winner,
+  }) {
+    if (board.length != boardSize ||
+        board.any((row) => row.length != boardSize)) {
+      throw ArgumentError('Remote board dimensions do not match this game');
+    }
+
+    final previousBoard = this.board;
+    final wasGameOver = isGameOver;
+    this.board = [for (final row in board) List<Stone>.of(row)];
+    this.currentPlayer = currentPlayer;
+    this.winner = winner;
+    isDraw =
+        winner == null &&
+        this.board.every((row) => row.every((stone) => stone != Stone.none));
+    winningLine = const [];
+    concededBy = null;
+    moveHistory
+      ..clear()
+      ..addAll([
+        for (var row = 0; row < boardSize; row++)
+          for (var col = 0; col < boardSize; col++)
+            if (this.board[row][col] != Stone.none) Position(row, col),
+      ]);
+
+    for (var row = 0; row < boardSize; row++) {
+      for (var col = 0; col < boardSize; col++) {
+        if (previousBoard[row][col] == this.board[row][col]) continue;
+        if (this.board[row][col] == Stone.none) {
+          pieceRemovedNotifier.value = (row, col);
+        } else {
+          piecePlacedNotifier.value = (row, col);
+        }
+      }
+    }
+
+    if (isGameOver) {
+      gameStartedNotifier.value = false;
+    } else if (wasGameOver) {
+      gameStartedNotifier.value = true;
+    }
   }
 
   /// Undoes the most recent move, restoring turn order and any win/draw state.
