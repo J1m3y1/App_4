@@ -186,6 +186,7 @@ class Client extends ChangeNotifier {
 
   void _handlePlayerJoined(dynamic data) {
     final event = _asMap(data);
+    if (event['roomCode'] != _roomCode) return;
     _applyGameSnapshot(event['game']);
   }
 
