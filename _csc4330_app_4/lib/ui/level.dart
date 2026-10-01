@@ -1,7 +1,10 @@
+import 'dart:math';
+
 import 'package:_csc4330_app_4/models/client.dart';
 import 'package:_csc4330_app_4/models/gomoku_game.dart';
 import 'package:_csc4330_app_4/models/player.dart';
 import 'package:_csc4330_app_4/ui/board.dart';
+import 'package:_csc4330_app_4/ui/decoration.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -51,8 +54,9 @@ class MainLevel extends StatefulWidget {
 
 class _MainLevelState extends State<MainLevel> {
   late bool _gameOver;
+  OverlayEntry? _sceneEntry;
   GomokuGame? _game; 
-
+  
   @override
   void didChangeDependencies(){
     super.didChangeDependencies();
@@ -68,6 +72,9 @@ class _MainLevelState extends State<MainLevel> {
 
   void _onGameStartedChange() {
     setState(() => _gameOver = !_game!.gameStartedNotifier.value);
+    if (_sceneEntry != null){
+      _sceneEntry!.markNeedsBuild();
+    }
   }
 
   Widget _winnerImage() {
@@ -152,11 +159,27 @@ class _MainLevelState extends State<MainLevel> {
         )
     ];
 
-    return Container(
-        decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary),
-        child: Stack(
-          children: backgroundStackChildren
-        )
+    _sceneEntry = OverlayEntry(
+            canSizeOverlay: true,
+            builder: (context) => Container(
+              decoration: BoxDecoration(color: Theme.of(context).colorScheme.primary),
+              child: Stack(
+                children: backgroundStackChildren
+                )
+              )
+          );
+
+    return SceneLighting(
+      lightPosition: Offset(64.0*_game!.boardSize, 0.0),
+      lightRadius: 64.0*_game!.boardSize * sqrt(2),
+      lightColor: const Color.fromARGB(255, 217, 168, 61),
+      ambientIntensity: 0.6,
+      child: Overlay(
+        alwaysSizeToContent: true,
+        initialEntries: [
+          _sceneEntry!
+        ]
+      )
     );
   }
 }

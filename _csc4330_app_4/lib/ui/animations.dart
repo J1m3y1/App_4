@@ -191,15 +191,16 @@ class _PlacingPieceAnimationState extends State<PlacingPieceAnimation> with Sing
         final progress = _dropAnimation.value;
         final heightAboveBoard = 1.0 - progress;
 
-        final Player player = context.read();
-        double sign = (player.color == Stone.white) ? -1 : 1;
+        final GomokuGame game = context.read();
+        double sign = (game.currentPlayer == Stone.white) ? -1 : 1;
 
         final Matrix4 perspectiveMatrix = Matrix4.identity()..setEntry(3, 2, .0018)
-          ..translateByVector3(Vector3(sign * 200.0 * heightAboveBoard, sign * 80.0 * heightAboveBoard, 500.0 * heightAboveBoard))
+          ..translateByVector3(Vector3(sign * 400.0 * heightAboveBoard, sign * 80.0 * heightAboveBoard, 200.0 * heightAboveBoard))
           ..rotateX(0.05*heightAboveBoard)
           ..rotateY(-0.05*heightAboveBoard)
           ..rotateZ(0.05*heightAboveBoard)
-          ..scaleAdjoint(1.0 + (1.6 * heightAboveBoard));
+          ..scaleByDouble(1.0, 1.0, 1.0, (1.0 * progress).clamp(.1, 1));
+          //..scaleAdjoint(1.0 + (200.0 * heightAboveBoard));
 
         final shadowBlur = 2.0 + (28.0 * heightAboveBoard);
         final shadowSpread = .5 + (8.0 * heightAboveBoard);

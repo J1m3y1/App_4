@@ -212,57 +212,43 @@ class _BoardWidgetState extends State<BoardWidget> {
   Widget build(BuildContext context){
     Shaders shaders = context.read();
 
-    return SceneLighting(
-      lightPosition: Offset(64.0*_game!.boardSize, 0.0),
-      lightRadius: 64.0*_game!.boardSize * sqrt(2),
-      lightColor: const Color.fromARGB(255, 217, 168, 61),
-      ambientIntensity: 0.6,
-      child: Overlay(
-        alwaysSizeToContent: true,
-        initialEntries: [
-          OverlayEntry(
-            canSizeOverlay: true,
-            builder: (context) => Container(
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.black,
-                  width: 1.0
-                )
-              ),
-              child: Container(
-                decoration: ShaderDecoration(shader: shaders.shading, baseColor: Colors.brown, intensity:.08),
-                child: Row(
-                mainAxisAlignment: .center,
-                  children: [
-                    for (int i=0; i<pieces.length; i++) Column(
-                      mainAxisAlignment: .center,
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(
+          color: Colors.black,
+          width: 1.0
+        )
+      ),
+      child: Container(
+        decoration: ShaderDecoration(shader: shaders.shading, baseColor: Colors.brown, intensity:.08),
+        child: Row(
+        mainAxisAlignment: .center,
+          children: [
+            for (int i=0; i<pieces.length; i++) Column(
+              mainAxisAlignment: .center,
+              children: [
+                for (int j=0; j<pieces[i].length; j++) (() {
+                  if ((_pieceIsPlaying == (i, j)) && pieces[i][j] != null){
+                    return Stack(
+                      clipBehavior: Clip.none ,
                       children: [
-                        for (int j=0; j<pieces[i].length; j++) (() {
-                          if ((_pieceIsPlaying == (i, j)) && pieces[i][j] != null){
-                            return Stack(
-                              clipBehavior: Clip.none ,
-                              children: [
-                                _boardContainer(null),
-                                _placingPiece(i, j)
-                              ]
-                            );
-                          }
-                          else if (pieces[i][j] != null){
-                            return _boardContainer(pieces[i][j]);
-                          }
-                          else {
-                            return _boardContainer(_previewPiece(i, j));
-                          }
-                        })()
+                        _boardContainer(null),
+                        _placingPiece(i, j)
                       ]
-                    )
-                  ]
-                )
-              )
+                    );
+                  }
+                  else if (pieces[i][j] != null){
+                    return _boardContainer(pieces[i][j]);
+                  }
+                  else {
+                    return _boardContainer(_previewPiece(i, j));
+                  }
+                })()
+              ]
             )
-          )
-        ]
+          ]
+        )
       )
-    );  
+    );
   }
 }
