@@ -1,23 +1,35 @@
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.net.socket;
+import io.socket.client.Ack;
+import io.socket.client.IO;
+import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
+import org.json.JSONObject;
 
 public class Client{
-    public static void main(String [] args) throws IOException{
-        Socket socket = new Socket("localhost", 12345);
-        System.out.println("Connected!!");
+    public static void main(String[] args) throws Exception {
+        Socket socket = IO.socket("http://localhost:3000");
 
-        OutputStream outputStream = socket.getOutputStream();
-        DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
-        System.out.println("Sending message to server...");
+        socket.on(Socket.EVENT_CONNECT, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                System.out.println("Connected to the Gomoku server.");
+                socket.emit("create_game", new JSONObject(), new Ack() {
+                    @Override
+                    public void call(Object... response) {
+                        System.out.println("Server response: " + response[0]);
+                        socket.disconnect();
+                    }
+                });
+            }
+        });
 
-        dataOutputStream.writeUTF("Hello from client!");
-        dataOutputStream.flush();
+        socket.on(Socket.EVENT_CONNECT_ERROR, new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                System.err.println("Could not connect to http://localhost:3000: " + args[0]);
+                socket.disconnect();
+            }
+        });
 
-        dataOutputStream.close()
-        System.out.println("Closing socket and terminating program...");
-        socket.close()
+        socket.connect();
     }
-
 }
