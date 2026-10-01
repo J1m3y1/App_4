@@ -141,16 +141,17 @@ class _MainLevelState extends State<MainLevel> {
 
   Widget _onlineControls() {
     final client = context.watch<Client>();
-    final status = switch (client.gameStatus) {
-      'waiting' => 'Waiting for player',
-        'active' => !client.isConnected
-          ? 'Disconnected'
-          : client.canMove
-            ? 'Your turn'
-            : 'Opponent\'s turn',
-      'finished' => 'Game over',
-      _ => 'Local game',
-    };
+    final colorScheme = Theme.of(context).colorScheme;
+    final status = !client.isOnline
+        ? 'Local game'
+        : !client.isConnected
+        ? 'Disconnected'
+        : switch (client.gameStatus) {
+            'waiting' => 'Waiting for player',
+            'active' => client.canMove ? 'Your turn' : 'Opponent\'s turn',
+            'finished' => 'Game over',
+            _ => 'Online game',
+          };
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -163,16 +164,27 @@ class _MainLevelState extends State<MainLevel> {
           if (!client.isOnline) ...[
             OutlinedButton.icon(
               onPressed: _createOnlineGame,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: colorScheme.onPrimary,
+                side: BorderSide(color: colorScheme.onPrimary),
+              ),
               icon: const Icon(Icons.add_link),
               label: const Text('Create online'),
             ),
             OutlinedButton.icon(
               onPressed: _joinOnlineGame,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: colorScheme.onPrimary,
+                side: BorderSide(color: colorScheme.onPrimary),
+              ),
               icon: const Icon(Icons.login),
               label: const Text('Join online'),
             ),
           ] else ...[
-            Text('Room ${client.roomCode} · $status'),
+            Text(
+              'Room ${client.roomCode} · $status',
+              style: TextStyle(color: colorScheme.onPrimary),
+            ),
             if (client.gameStatus == 'active')
               TextButton.icon(
                 onPressed: () async {
@@ -182,6 +194,9 @@ class _MainLevelState extends State<MainLevel> {
                     _showMessage(error.toString());
                   }
                 },
+                style: TextButton.styleFrom(
+                  foregroundColor: colorScheme.onPrimary,
+                ),
                 icon: const Icon(Icons.flag_outlined),
                 label: const Text('Resign'),
               ),

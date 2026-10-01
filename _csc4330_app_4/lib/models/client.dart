@@ -150,21 +150,13 @@ class Client extends ChangeNotifier {
     Map<String, dynamic> payload,
   ) async {
     await _ensureConnected();
-    final completer = Completer<Map<String, dynamic>>();
-    _socket!.emitWithAck(
-      event,
-      payload,
-      ack: (dynamic response) {
-        if (completer.isCompleted) return;
-        if (response is Map) {
-          completer.complete(Map<String, dynamic>.from(response));
-        } else {
-          completer.completeError(StateError('Invalid response from server'));
-        }
-      },
-    );
-
-    final response = await completer.future.timeout(const Duration(seconds: 8));
+    final rawResponse = await _socket!
+        .emitWithAckAsync(event, payload)
+        .timeout(const Duration(seconds: 8));
+    if (rawResponse is! Map) {
+      throw StateError('Invalid response from server');
+    }
+    final response = Map<String, dynamic>.from(rawResponse);
     if (response['ok'] != true) {
       final error = response['error'];
       final message = error is Map ? error['message'] : null;
@@ -217,7 +209,12 @@ class Client extends ChangeNotifier {
                 'Invalid board row received from server',
               );
             }
-            return rawRow.map(_stoneFromServer).toList(growable: false);
+            return rawRow
+                .map(
+                  (value) =>
+                      value == null ? Stone.none : _stoneFromServer(value),
+                )
+                .toList(growable: false);
           })
           .toList(growable: false);
 
