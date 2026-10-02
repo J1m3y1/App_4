@@ -41,8 +41,12 @@ function registerSocketHandlers(io, socket) {
       const result = store.joinGame(roomCode);
       socket.join(roomCode);
       store.setPlayerSocket(roomCode, 'white', socket.id);
-      reply(ack, { ok: true, ...result });
-      socket.to(roomCode).emit('player_joined', { color: 'white', game: result.game });
+      reply(ack, { ok: true, roomCode, ...result });
+      io.to(roomCode).emit('player_joined', {
+        roomCode,
+        color: 'white',
+        game: result.game,
+      });
     } catch (err) {
       reply(ack, { ok: false, error: errorPayload(err) });
     }

@@ -19,6 +19,38 @@ void main() {
       expect(game.currentPlayer, Stone.black);
     });
 
+    test('applies remote snapshots and notifies changed cells', () {
+      final game = GomokuGame(boardSize: 9);
+      game.placeStone(1, 1);
+      final placed = <(int, int)>[];
+      final removed = <(int, int)>[];
+      game.piecePlacedNotifier.addListener(
+        () => placed.add(game.piecePlacedNotifier.value),
+      );
+      game.pieceRemovedNotifier.addListener(
+        () => removed.add(game.pieceRemovedNotifier.value),
+      );
+      final remoteBoard = List.generate(
+        9,
+        (_) => List.filled(9, Stone.none),
+      );
+      remoteBoard[2][3] = Stone.black;
+      remoteBoard[2][4] = Stone.white;
+
+      game.applyRemoteState(
+        board: remoteBoard,
+        currentPlayer: Stone.black,
+        winner: null,
+      );
+
+      expect(game.stoneAt(1, 1), Stone.none);
+      expect(game.stoneAt(2, 3), Stone.black);
+      expect(game.stoneAt(2, 4), Stone.white);
+      expect(game.currentPlayer, Stone.black);
+      expect(removed, [(1, 1)]);
+      expect(placed, [(2, 3), (2, 4)]);
+    });
+
     test('rejects moves out of bounds or on occupied cells', () {
       final game = GomokuGame(boardSize: 9);
       expect(game.placeStone(-1, 0), isFalse);

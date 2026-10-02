@@ -8,31 +8,26 @@ import 'package:_csc4330_app_4/ui/animations.dart';
 import 'package:_csc4330_app_4/ui/decoration.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import './piece.dart';
 
-
-
-Container _boardContainer (Widget? interior) {
+Container _boardContainer(Widget? interior) {
   List<Widget> children = [];
-  children.add(SizedBox(width: 64.0, height: 64.0, child: const SizedBox.shrink()));
+  children.add(
+    SizedBox(width: 64.0, height: 64.0, child: const SizedBox.shrink()),
+  );
   if (interior != null) children.add(interior);
-  
+
   return Container(
     decoration: BoxDecoration(
-      border: Border.all(
-        color: Colors.black,
-        width: 1.0
-      )
+      border: Border.all(color: Colors.black, width: 1.0),
     ),
-    child: Stack( 
-      children: children
-    )
+    child: Stack(children: children),
   );
 }
 
 class BoardWidget extends StatefulWidget {
   const BoardWidget({super.key});
-  
 
   @override
   State<BoardWidget> createState() => _BoardWidgetState();
@@ -53,42 +48,51 @@ class _BoardWidgetState extends State<BoardWidget> {
     final Player newPlayer = context.watch();
     final Client newClient = context.watch();
 
-    if(_game != newGame){
+    if (_game != newGame) {
       _detachListeners();
       _game = newGame;
       _initBoard();
       _attachListeners();
     }
 
-    if(_player != newPlayer){
+    if (_player != newPlayer) {
       _player = newPlayer;
     }
 
-    if(_client != newClient){
+    if (_client != newClient) {
       _client = newClient;
     }
   }
 
-  void _attachListeners(){
+  void _attachListeners() {
     _game?.piecePlacedNotifier.addListener(_onPiecePlaced);
     _game?.pieceRemovedNotifier.addListener(_onPieceRemoved);
   }
 
-  void _detachListeners(){
+  void _detachListeners() {
     _game?.piecePlacedNotifier.removeListener(_onPiecePlaced);
     _game?.pieceRemovedNotifier.removeListener(_onPieceRemoved);
   }
 
-  void _initBoard(){
-    pieces = [ for (List<Stone> row in _game!.board)
-        [ for (Stone stone in row) if (stone == Stone.black) Piece(PieceColor.black) else if (stone == Stone.white) Piece(PieceColor.white) else null]
+  void _initBoard() {
+    pieces = [
+      for (List<Stone> row in _game!.board)
+        [
+          for (Stone stone in row)
+            if (stone == Stone.black)
+              Piece(PieceColor.black)
+            else if (stone == Stone.white)
+              Piece(PieceColor.white)
+            else
+              null,
+        ],
     ];
   }
 
   @override
-  void dispose(){
+  void dispose() {
     _detachListeners();
-    super.dispose(); 
+    super.dispose();
   }
 
   void _onPiecePlaced() {
@@ -97,48 +101,53 @@ class _BoardWidgetState extends State<BoardWidget> {
 
     setState(() {
       Piece? piece;
-      if (stone == Stone.black){
-        piece = Piece(PieceColor.black); 
-      } else if (stone == Stone.white){
+      if (stone == Stone.black) {
+        piece = Piece(PieceColor.black);
+      } else if (stone == Stone.white) {
         piece = Piece(PieceColor.white);
       } else {
         piece = null;
       }
 
       pieces[coordinate.$1][coordinate.$2] = piece;
-    }); 
+    });
   }
 
-  void _onPieceRemoved(){
+  void _onPieceRemoved() {
     (int, int) coordinate = _game!.pieceRemovedNotifier.value;
     Stone stone = _game!.board[coordinate.$1][coordinate.$2];
 
     setState(() {
       Piece? piece;
-      if (stone == Stone.black){
-        piece = Piece(PieceColor.black); 
-      } else if (stone == Stone.white){
+      if (stone == Stone.black) {
+        piece = Piece(PieceColor.black);
+      } else if (stone == Stone.white) {
         piece = Piece(PieceColor.white);
       } else {
         piece = null;
       }
 
       pieces[coordinate.$1][coordinate.$2] = piece;
-    }); 
+    });
   }
 
-  bool _moveIsValid(){
-    Stone color = _player!.color;
-    Stone currentColor = _game!.currentPlayer;
-    bool gameIsOver =_game!.isGameOver;
+  bool _moveIsValid() {
     bool online = _client!.isOnline;
 
-    return (!gameIsOver && ((color == currentColor) || !online));
-  } 
+    return !_game!.isGameOver && (!online || _client!.canMove);
+  }
 
   void Function() _onClick(int row, int column) {
     return (() {
-      if (_moveIsValid()) {
+      if (!_moveIsValid()) return;
+
+      if (_client!.isOnline) {
+        _client!.makeMove(row, column).catchError((Object error) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text(error.toString())));
+        });
+      } else {
         _game!.placeStone(row, column);
       }
     });
@@ -148,22 +157,24 @@ class _BoardWidgetState extends State<BoardWidget> {
     Stone color = _player!.color;
     Stone currentColor = _game!.currentPlayer;
     Widget pieceWidget;
-    ValueNotifier<bool> toggleAnimation = ValueNotifier(_moveIsValid() && color != Stone.none);
+    ValueNotifier<bool> toggleAnimation = ValueNotifier(
+      _moveIsValid() && color != Stone.none,
+    );
 
-    if(_moveIsValid()){
-      if (currentColor == Stone.black){
+    if (_moveIsValid()) {
+      if (currentColor == Stone.black) {
         pieceWidget = Image.asset(
           "assets/black-piece.png",
           opacity: AlwaysStoppedAnimation(.5),
           height: 64,
-          width: 64
+          width: 64,
         );
-      } else if (currentColor == Stone.white){
+      } else if (currentColor == Stone.white) {
         pieceWidget = Image.asset(
           "assets/white-piece.png",
           opacity: AlwaysStoppedAnimation(.5),
           height: 64,
-          width: 64
+          width: 64,
         );
       } else {
         pieceWidget = SizedBox.shrink();
@@ -171,15 +182,12 @@ class _BoardWidgetState extends State<BoardWidget> {
     } else {
       pieceWidget = SizedBox.shrink();
     }
-    
-    (Widget, BoxDecoration) hoverOn = (
-      pieceWidget,
-      BoxDecoration()
-    );
+
+    (Widget, BoxDecoration) hoverOn = (pieceWidget, BoxDecoration());
 
     (Widget, BoxDecoration) hoverOff = (
       const SizedBox(width: 64, height: 64),
-      BoxDecoration() 
+      BoxDecoration(),
     );
 
     return HoverableAnimation(
@@ -187,42 +195,47 @@ class _BoardWidgetState extends State<BoardWidget> {
       hoverOff: hoverOff,
       duration: const Duration(milliseconds: 10),
       onClickCallback: _onClick(row, column),
-      toggleAnimation: toggleAnimation
+      toggleAnimation: toggleAnimation,
     );
   }
 
-  @override 
-  Widget build(BuildContext context){
+  @override
+  Widget build(BuildContext context) {
     Shaders shaders = context.read();
-    
 
     return SceneLighting(
-      lightPosition: Offset(64.0*_game!.boardSize, 0.0),
-      lightRadius: 64.0*_game!.boardSize * sqrt(2),
+      lightPosition: Offset(64.0 * _game!.boardSize, 0.0),
+      lightRadius: 64.0 * _game!.boardSize * sqrt(2),
       lightColor: const Color.fromARGB(255, 217, 168, 61),
       ambientIntensity: 0.6,
       child: Container(
         decoration: BoxDecoration(
-          border: Border.all(
-            color: Colors.black,
-            width: 1.0
-          )
+          border: Border.all(color: Colors.black, width: 1.0),
         ),
         child: Container(
-          decoration: ShaderDecoration(shader: shaders.shading, baseColor: Colors.brown, intensity:.08),
+          decoration: ShaderDecoration(
+            shader: shaders.shading,
+            baseColor: Colors.brown,
+            intensity: .08,
+          ),
           child: Row(
-          mainAxisAlignment: .center,
+            mainAxisAlignment: .center,
             children: [
-              for (int i=0; i<pieces.length; i++) Column(
-                mainAxisAlignment: .center,
-                children: [
-                  for (int j=0; j<pieces[i].length; j++) if (pieces[i][j] != null) _boardContainer(pieces[i][j]) else _boardContainer(_previewPiece(i, j))
-                ]
-              )
-            ]
-          )
-        )
-      )
-    ); 
+              for (int i = 0; i < pieces.length; i++)
+                Column(
+                  mainAxisAlignment: .center,
+                  children: [
+                    for (int j = 0; j < pieces[i].length; j++)
+                      if (pieces[i][j] != null)
+                        _boardContainer(pieces[i][j])
+                      else
+                        _boardContainer(_previewPiece(i, j)),
+                  ],
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }
