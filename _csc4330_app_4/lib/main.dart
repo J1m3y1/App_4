@@ -1,5 +1,6 @@
 import 'package:_csc4330_app_4/models/shaders.dart';
 import 'package:_csc4330_app_4/ui/level.dart';
+import 'package:_csc4330_app_4/ui/menu.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui' as ui;
@@ -69,7 +70,10 @@ class _MyHomePageState extends State<MyHomePage> {
           return MultiProvider(
             providers: [snapshot.data!], 
               // TODO: Fill in level provider providers with providers obtained from instatiting client-server connections and new games
-            child: LevelProvider()
+            child: Navigator(
+              onDidRemovePage: (page) => (),
+              pages: [MaterialPage(child: MainMenu())]
+            )
           );
         }
       }

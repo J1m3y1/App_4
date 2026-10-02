@@ -53,6 +53,7 @@ class LevelProvider extends StatelessWidget {
 }
 
 class MainLevel extends StatefulWidget {
+  
   const MainLevel({super.key});
 
   @override
@@ -231,7 +232,21 @@ class _MainLevelState extends State<MainLevel> {
             scale: _gameOver ? 1.0 : 0.0,
             duration: const Duration(seconds: 10),
             curve: Curves.linearToEaseOut,
-            child: _winnerImage(),
+            child: Column(
+              mainAxisAlignment: .center,
+              spacing: 20,
+              children: [
+                _winnerImage(),
+                ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: ElevatedButton.styleFrom(backgroundColor: Theme.of(context).colorScheme.inversePrimary),
+                  child: Text(
+                    "Return to Menu",
+                    style: TextStyle(fontSize: 60),
+                  ),
+                )
+              ]
+            )
           ),
         ),
       ),
