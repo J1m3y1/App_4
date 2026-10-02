@@ -24,27 +24,31 @@ const DIRECTIONS = [
   [1, -1], // diagonal down-left
 ];
 
+// Counts the full contiguous run through (row, col) in each direction and
+// requires it to be exactly WIN_LENGTH — a longer run (overline) does not
+// win, matching the "standard Gomoku" rule the client's local game enforces
+// (see GomokuGame._winningLineThrough in lib/models/gomoku_game.dart).
 function checkWin(board, row, col, color) {
   const size = board.length;
 
   return DIRECTIONS.some(([dRow, dCol]) => {
-    let count = 1;
+    let length = 1;
 
-    for (let step = 1; step < WIN_LENGTH; step++) {
+    for (let step = 1; ; step++) {
       const r = row + dRow * step;
       const c = col + dCol * step;
       if (r < 0 || r >= size || c < 0 || c >= size || board[r][c] !== color) break;
-      count++;
+      length++;
     }
 
-    for (let step = 1; step < WIN_LENGTH; step++) {
+    for (let step = 1; ; step++) {
       const r = row - dRow * step;
       const c = col - dCol * step;
       if (r < 0 || r >= size || c < 0 || c >= size || board[r][c] !== color) break;
-      count++;
+      length++;
     }
 
-    return count >= WIN_LENGTH;
+    return length === WIN_LENGTH;
   });
 }
 

@@ -82,6 +82,10 @@ class _BoardWidgetState extends State<BoardWidget> {
     _game?.gameStartedNotifier.removeListener(_onGameStartedChange);
   }
 
+  void _onGameStartedChange() {
+    setState(() => _gameIsOver = !_game!.gameStartedNotifier.value);
+  }
+
   void _initBoard() {
     pieces = [
       for (List<Stone> row in _game!.board)
@@ -118,6 +122,10 @@ class _BoardWidgetState extends State<BoardWidget> {
       }
 
       pieces[coordinate.$1][coordinate.$2] = piece;
+      // Also triggers the placing animation for pieces that arrive via a
+      // remote board sync (opponent's move), not just the local player's own
+      // click, which is the only other place that sets _pieceIsPlaying.
+      _pieceIsPlaying = coordinate;
     });
   }
 
