@@ -143,59 +143,129 @@ class MainMenu extends StatelessWidget {
     );
   }
 
+  Widget _menuButton(BuildContext context, String label, IconData icon, VoidCallback onPressed) {
+    final scheme = Theme.of(context).colorScheme;
+    return ElevatedButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 40),
+      label: Text(label, style: const TextStyle(fontSize: 50, fontWeight: FontWeight(1000))),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: scheme.primary,
+        padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+        foregroundColor: scheme.onPrimary,
+        elevation: 8,
+        shadowColor: Colors.black45,
+        side: BorderSide(color: scheme.onPrimary.withValues(alpha: .25)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      ),
+    );
+  }
+
+  // Five in a row: purely decorative stones between title and buttons.
+  Widget _stones() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        spacing: 18,
+        children: [
+          for (final dark in const [true, false, true, false, true])
+            Container(
+              width: 30,
+              height: 30,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: dark ? const Color(0xFF16121C) : Colors.white,
+                border: Border.all(color: Colors.white24),
+                boxShadow: const [
+                  BoxShadow(color: Colors.black38, blurRadius: 8, offset: Offset(0, 4)),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context){
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(body: SafeArea(child: Container(
       width: MediaQuery.widthOf(context),
       height: MediaQuery.widthOf(context),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: Theme.of(context).primaryColor
+        gradient: RadialGradient(
+          center: const Alignment(-.4, -.5),
+          radius: 1.5,
+          colors: [
+            scheme.primary,
+            Color.lerp(scheme.primary, Colors.black, .72)!,
+            const Color(0xFF0E0616),
+          ],
+        )
       ),
 
       child: FractionallySizedBox(
         widthFactor: .3,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: .center,
-          children: [
-            Padding (
-              padding: EdgeInsetsGeometry.symmetric(vertical: 20),
-              child: 
-                Text(
-                  "Gomoku Royale",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 100,
-                    color: Theme.of(context).secondaryHeaderColor,
-                    decoration: TextDecoration.none
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.0, end: 1.0),
+          duration: const Duration(milliseconds: 700),
+          curve: Curves.easeOutCubic,
+          builder: (context, t, child) => Opacity(
+            opacity: t,
+            child: Transform.translate(offset: Offset(0, 24 * (1 - t)), child: child),
+          ),
+          child: Column(
+            spacing: 20,
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: .center,
+            children: [
+              Padding (
+                padding: EdgeInsetsGeometry.symmetric(vertical: 20),
+                child: 
+                  Text(
+                    "Gomoku Royale",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 100,
+                      color: scheme.onPrimary,
+                      decoration: TextDecoration.none,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 3,
+                      shadows: [
+                        Shadow(color: scheme.primary.withValues(alpha: .6), blurRadius: 48),
+                        const Shadow(color: Colors.black54, blurRadius: 16, offset: Offset(0, 6)),
+                      ],
+                    )
                   )
-                )
-            ),
+              ),
 
-            Column(
-              mainAxisAlignment: .center,
-              crossAxisAlignment: .stretch,
-              mainAxisSize: MainAxisSize.min,
-              spacing: 40,
-              children: [
-                Flexible(
-                  child: ElevatedButton(onPressed: () => _startServer(context), child: Text("Start Server", style: TextStyle(fontSize: 50))),
-                ),
-                Flexible(
-                  child: ElevatedButton(onPressed: () => _joinServer(context), child: Text("Join Server", style: TextStyle(fontSize: 50))),
-                ),
-                Flexible(
-                  child: ElevatedButton(onPressed: () => _startLocal(context), child: Text("Play Local", style: TextStyle(fontSize: 50))),
-                )
-                
-              ]
-            ),
-          ]
-        )
+              _stones(),
+
+              Column(
+                mainAxisAlignment: .center,
+                crossAxisAlignment: .stretch,
+                mainAxisSize: MainAxisSize.min,
+                spacing: 40,
+                children: [
+                  Flexible(
+                    child: _menuButton(context, "Start Server", Icons.wifi_tethering, () => _startServer(context)),
+                  ),
+                  Flexible(
+                    child: _menuButton(context, "Join Server", Icons.login, () => _joinServer(context)),
+                  ),
+                  Flexible(
+                    child: _menuButton(context, "Play Local", Icons.group, () => _startLocal(context)),
+                  )
+                ]
+              ),
+            ]
+          ),
+        ),
       )
     )));
-    
+
 
   }
 }
