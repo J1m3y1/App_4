@@ -112,7 +112,7 @@ class GomokuGame {
     concededBy = null;
     moveHistory.clear();
 
-    gameStartedNotifier.value = true;
+    gameStartedNotifier.value = !isGameOver;
   }
 
   /// Ends the game with [player] (the current player by default) conceding,

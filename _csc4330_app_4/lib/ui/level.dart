@@ -1,7 +1,10 @@
+import 'dart:math';
+
 import 'package:_csc4330_app_4/models/client.dart';
 import 'package:_csc4330_app_4/models/gomoku_game.dart';
 import 'package:_csc4330_app_4/models/player.dart';
 import 'package:_csc4330_app_4/ui/board.dart';
+import 'package:_csc4330_app_4/ui/decoration.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -58,8 +61,9 @@ class MainLevel extends StatefulWidget {
 
 class _MainLevelState extends State<MainLevel> {
   late bool _gameOver;
-  GomokuGame? _game;
-
+  OverlayEntry? _sceneEntry;
+  GomokuGame? _game; 
+  
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -74,8 +78,10 @@ class _MainLevelState extends State<MainLevel> {
   }
 
   void _onGameStartedChange() {
-    print(_game!.gameStartedNotifier.value);
     setState(() => _gameOver = !_game!.gameStartedNotifier.value);
+    if (_sceneEntry != null){
+      _sceneEntry!.markNeedsBuild();
+    }
   }
 
   Widget _winnerImage() {
@@ -215,6 +221,7 @@ class _MainLevelState extends State<MainLevel> {
   Widget build(BuildContext context) {
     List<Widget> gameStackChildren = [
       BoardWidget(),
+    
       // Game over screen
       Positioned.fill(
         child: FractionallySizedBox(

@@ -22,7 +22,10 @@ Container _boardContainer(Widget? interior) {
     decoration: BoxDecoration(
       border: Border.all(color: Colors.black, width: 1.0),
     ),
-    child: Stack(children: children),
+    child: Stack( 
+      clipBehavior: Clip.none,
+      children: children
+    )
   );
 }
 
@@ -37,7 +40,9 @@ class _BoardWidgetState extends State<BoardWidget> {
   GomokuGame? _game;
   Player? _player;
   Client? _client;
-
+  
+  (int, int)? _pieceIsPlaying;
+  late bool _gameIsOver; 
   late List<List<Piece?>> pieces;
 
   @override
@@ -52,6 +57,7 @@ class _BoardWidgetState extends State<BoardWidget> {
       _detachListeners();
       _game = newGame;
       _initBoard();
+      _gameIsOver = !_game!.gameStartedNotifier.value;
       _attachListeners();
     }
 
@@ -67,11 +73,13 @@ class _BoardWidgetState extends State<BoardWidget> {
   void _attachListeners() {
     _game?.piecePlacedNotifier.addListener(_onPiecePlaced);
     _game?.pieceRemovedNotifier.addListener(_onPieceRemoved);
+    _game?.gameStartedNotifier.addListener(_onGameStartedChange);
   }
 
   void _detachListeners() {
     _game?.piecePlacedNotifier.removeListener(_onPiecePlaced);
     _game?.pieceRemovedNotifier.removeListener(_onPieceRemoved);
+    _game?.gameStartedNotifier.removeListener(_onGameStartedChange);
   }
 
   void _initBoard() {
@@ -134,16 +142,21 @@ class _BoardWidgetState extends State<BoardWidget> {
   bool _moveIsValid() {
     bool online = _client!.isOnline;
 
-    return !_game!.isGameOver && (!online || _client!.canMove);
+    return _pieceIsPlaying == null &&
+        !_game!.isGameOver &&
+        (!online || _client!.canMove);
   }
 
   void Function() _onClick(int row, int column) {
     return (() {
       if (!_moveIsValid()) return;
 
+      setState(() => _pieceIsPlaying = (row, column));
+
       if (_client!.isOnline) {
         _client!.makeMove(row, column).catchError((Object error) {
           if (!mounted) return;
+          setState(() => _pieceIsPlaying = null);
           ScaffoldMessenger.of(context)
               .showSnackBar(SnackBar(content: Text(error.toString())));
         });
@@ -199,6 +212,13 @@ class _BoardWidgetState extends State<BoardWidget> {
     );
   }
 
+  PlacingPieceAnimation _placingPiece(int row, int column) {
+    return PlacingPieceAnimation(
+      pieceWidget: pieces[row][column]!,
+      onLanded: () => setState(() => _pieceIsPlaying = null),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Shaders shaders = context.read();
@@ -226,7 +246,15 @@ class _BoardWidgetState extends State<BoardWidget> {
                   mainAxisAlignment: .center,
                   children: [
                     for (int j = 0; j < pieces[i].length; j++)
-                      if (pieces[i][j] != null)
+                      if ((_pieceIsPlaying == (i, j)) && pieces[i][j] != null)
+                        Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            _boardContainer(null),
+                            _placingPiece(i, j),
+                          ],
+                        )
+                      else if (pieces[i][j] != null)
                         _boardContainer(pieces[i][j])
                       else
                         _boardContainer(_previewPiece(i, j)),
